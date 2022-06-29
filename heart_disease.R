@@ -10,7 +10,7 @@ library(e1071)
 #load data set
 h <- read_csv('~/Work/R/HeartDisease/heart_disease_2020.csv')
 
-# check missing values
+#check missing values
 if (mean(complete.cases(h)) == 1) print("No NA found")
 
 #review data
@@ -19,11 +19,18 @@ glimpse(h)
 #descriptive summary
 summary(h)
 
+#explore and clean data
+h %>% count(Diabetic)
+
+h$Diabetic <- replace(h$Diabetic, h$Diabetic == 'Yes (during pregnancy)', 'Yes')
+h$Diabetic <- replace(h$Diabetic, h$Diabetic == 'No, borderline diabetes', 'No')
+h %>% count(Diabetic)
+
 h %>%
   count(HeartDisease) %>%
   mutate(percenttage = n/sum(n))
 
-#Undersampling by Group using the ROSE Package
+#undersampling by Group using the ROSE Package
 h_balanced = NULL
 
 
@@ -35,7 +42,6 @@ for (n in unique(h$HeartDisease)) {
 h_balanced %>%
   count(HeartDisease) %>%
   mutate(percenttage = n/sum(n))
-
 
 #1.split data into 80% train and 20% test
 set.seed(27)
@@ -96,6 +102,9 @@ modelList <- list(
 result <- resamples(modelList)
 summary(result)
 
+#check importance variable
+varImp(randomForrest_model)
+
 #confusion matrix
 #check class reference always
 confusionMatrix(randomForrest, 
@@ -103,5 +112,4 @@ confusionMatrix(randomForrest,
                 mode = "prec_recall",
                 positive = "Yes")
 
-#check importance variable
-varImp(randomForrest_model)
+
